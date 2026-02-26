@@ -33,7 +33,7 @@ namespace NetChangelogUtils
                 if (projects.Count == 0)
                     throw new InvalidOperationException("No valid project filed discovered");
 
-                var products = GetProductReleaseContexts(repo, projects);
+                var products = GetProductReleaseContexts(options, repo, projects);
 
                 var release = new ReleaseService(repo, new VersionStrategy(), new ChangelogGenerator());
                 release.Release(options, products);
@@ -44,9 +44,9 @@ namespace NetChangelogUtils
             }
         }
 
-        private static IEnumerable<ProductReleaseContext> GetProductReleaseContexts(Repository repo, IEnumerable<ProjectInfo> projects)
+        private static IEnumerable<ProductReleaseContext> GetProductReleaseContexts(CliOptions options, Repository repo, IEnumerable<ProjectInfo> projects)
         {
-            var history = new GitHistoryService(repo);
+            var history = new GitHistoryService(options, repo);
             foreach (var project in projects)
             {
                 var context = new ProductReleaseContext(project);
