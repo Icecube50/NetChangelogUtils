@@ -84,7 +84,7 @@ namespace NetChangelogUtils
         {
             foreach (var plan in plans)
             {
-                var tagName = $"{plan.Context.Project.ProductName}_v{plan.ChangelogVersion()}";
+                string tagName = GetTagName(plan);
 
                 if (_repo.Tags[tagName] != null)
                     throw new InvalidOperationException(
@@ -100,11 +100,16 @@ namespace NetChangelogUtils
             }
         }
 
+        private static string GetTagName(ReleasePlan plan)
+        {
+            return $"{plan.Context.Project.ProductName.Replace(" ", "_")}_v{plan.ChangelogVersion()}";
+        }
+
         private void CheckTags(IEnumerable<ReleasePlan> plans)
         {
             foreach (var plan in plans)
             {
-                var tagName = $"{plan.Context.Project.ProductName}_v{plan.ChangelogVersion()}";
+                var tagName = GetTagName(plan);
 
                 if (_repo.Tags[tagName] != null)
                 {

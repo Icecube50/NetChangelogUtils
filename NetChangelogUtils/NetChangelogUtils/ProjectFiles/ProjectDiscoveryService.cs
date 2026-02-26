@@ -43,7 +43,7 @@ namespace NetChangelogUtils.ProjectFiles
             info.AssemblyVersion = SemanticVersion.CreateFrom(propertyGroups.Elements("AssemblyVersion").FirstOrDefault()?.Value);
             info.FileVersion = SemanticVersion.CreateFrom(propertyGroups.Elements("FileVersion").FirstOrDefault()?.Value);
           
-            var product = propertyGroups.Elements("ProductName").FirstOrDefault()?.Value;
+            var product = propertyGroups.Elements("Product").FirstOrDefault()?.Value;
             if (string.IsNullOrEmpty(product))
                 product = Path.GetFileNameWithoutExtension(info.ProjectPath);
             info.ProductName = product;
