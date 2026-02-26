@@ -125,13 +125,18 @@ namespace NetChangelogUtils
                 NewFileVersion = strategy.CalculateNextVersion(context.Project.FileVersion, context.Commits);
 
                 Console.WriteLine($"Detected {context.Project.ProductName}: ");
-                Console.WriteLine($"\tVersion {context.Project.Version} ->  {NewVersion}");
-                Console.WriteLine($"\tFile Version {context.Project.FileVersion} ->  {NewFileVersion}");
-                Console.WriteLine($"\tAssembly Version {context.Project.AssemblyVersion} ->  {NewAssemblyVersion}");
+                if(NewVersion != null)
+                    Console.WriteLine($"\tVersion {context.Project.Version} ->  {NewVersion}");
+
+                if (NewFileVersion != null)
+                    Console.WriteLine($"\tFile Version {context.Project.FileVersion} ->  {NewFileVersion}");
+
+                if (NewAssemblyVersion != null)
+                    Console.WriteLine($"\tAssembly Version {context.Project.AssemblyVersion} ->  {NewAssemblyVersion}");
                 Console.WriteLine();
 
                 Changelog = changelog.Generate(context.Project.ProductName, ChangelogVersion(), context.Commits);
-                Console.WriteLine(changelog);
+                Console.WriteLine(Changelog);
                 Console.WriteLine();
             }
 
