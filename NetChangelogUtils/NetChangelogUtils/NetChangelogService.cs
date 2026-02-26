@@ -18,6 +18,8 @@ namespace NetChangelogUtils
         {
             try
             {
+                Console.WriteLine($"Analyzing {options.Path}");
+
                 if (!Directory.Exists(options.Path))
                     throw new InvalidOperationException($"Invalid project path {options.Path}");
 
