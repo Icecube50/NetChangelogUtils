@@ -35,6 +35,9 @@ namespace NetChangelogUtils
                     Path = parseResult.GetValue(projectPathOption)
                 };
 
+                var changelogUtils = new NetChangelogService();
+                changelogUtils.Run(options);
+
                 return 0;
             }
             foreach (ParseError parseError in parseResult.Errors)
