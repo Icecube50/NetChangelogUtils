@@ -15,6 +15,12 @@ namespace NetChangelogUtils
                 DefaultValueFactory = parseResult => false,
             };
 
+            Option<bool> ignoreUnscopedOption = new("--ignore-unscoped")
+            {
+                Description = "Use to ignore changes that have not been added to a scope",
+                DefaultValueFactory = parseResult => false,
+            };
+
             Option<string> projectPathOption = new("--project", "-p")
             {
                 Description = "Use to manually set path to the project directory",
@@ -24,6 +30,7 @@ namespace NetChangelogUtils
             // Root command
             var rootCommand = new RootCommand("NetChangelogUtils");
             rootCommand.Options.Add(dryRunOption);
+            rootCommand.Options.Add(ignoreUnscopedOption);
             rootCommand.Options.Add(projectPathOption);
          
             ParseResult parseResult = rootCommand.Parse(args);
@@ -32,6 +39,7 @@ namespace NetChangelogUtils
                 var options = new CliOptions
                 {
                     DryRun = parseResult.GetValue(dryRunOption),
+                    IgnoreUnscoped = parseResult.GetValue(ignoreUnscopedOption),
                     Path = parseResult.GetValue(projectPathOption)
                 };
 

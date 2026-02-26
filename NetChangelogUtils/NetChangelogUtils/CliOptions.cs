@@ -9,6 +9,7 @@ namespace NetChangelogUtils
     public class CliOptions
     {
         public bool DryRun { get; set; }
+        public bool IgnoreUnscoped { get; set; }
         public string Path { get; set; }
     }
 }

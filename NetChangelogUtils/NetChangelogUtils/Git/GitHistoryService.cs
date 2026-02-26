@@ -10,10 +10,12 @@ namespace NetChangelogUtils.Git
     public class GitHistoryService
     {
         private readonly Repository _repo;
+        private readonly CliOptions _options;
 
-        public GitHistoryService(Repository repo)
+        public GitHistoryService(CliOptions options, Repository repo)
         {
             _repo = repo;
+            _options = options;
         }
 
         public void GetHistoryForProduct(ProductReleaseContext context)
@@ -71,7 +73,8 @@ namespace NetChangelogUtils.Git
                 // No scope = affects all
                 if (entry.Scopes == null || !entry.Scopes.Any())
                 {
-                    yield return entry;
+                    if(!_options.IgnoreUnscoped)
+                        yield return entry;
                     continue;
                 }
 
