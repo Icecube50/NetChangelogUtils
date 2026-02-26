@@ -13,10 +13,13 @@ namespace NetChangelogUtils.Git
         public string Author { get; set; }
         public DateTimeOffset Date { get; set; }
 
+        public List<ReleaseEntry> Entries { get; set; } = new();
+    }
+
+    public class ReleaseEntry
+    {
         public string Category { get; set; }
         public List<string> Scopes { get; set; } = new();
-
-        public override string ToString()
-            => $"{Sha[..7]} | {Date:yyyy-MM-dd} | {Category}, {string.Join(',', Scopes)} | {Message}";
+        public string Description { get; set; }
     }
 }

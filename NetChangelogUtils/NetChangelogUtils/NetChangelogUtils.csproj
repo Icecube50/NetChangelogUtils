@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="ProjectFiles\Version\VersionManager.cs" />
+    <Compile Remove="Version\VersionManager.cs" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,18 +7,18 @@ using System.Threading.Tasks;
 
 namespace NetChangelogUtils.Git
 {
-    public class GitHistoryService : IDisposable
+    public class GitHistoryService
     {
         private readonly Repository _repo;
 
-        public GitHistoryService(string repositoryPath)
+        public GitHistoryService(Repository repo)
         {
-            _repo = new Repository(repositoryPath);
+            _repo = repo;
         }
 
         public void GetHistoryForProduct(ProductReleaseContext context)
         {
-            var lastTagCommit = GetLastProductTagCommit(context.VersionInfo.ProductName);
+            var lastTagCommit = GetLastProductTagCommit(context.Project.ProductName);
 
             context.LastTag = lastTagCommit?.Sha;
 
@@ -42,10 +42,7 @@ namespace NetChangelogUtils.Git
 
                 CommitParser.ParseCommit(info);
 
-                if (CommitAffectsProduct(info, context.VersionInfo.ProductName))
-                {
-                    context.Commits.Add(info);
-                }
+                context.Commits.AddRange(GetEntriesForProduct(info, context.Project.ProductName));
             }
         }
 
@@ -65,24 +62,25 @@ namespace NetChangelogUtils.Git
             return tag;
         }
 
-        private bool CommitAffectsProduct(
-            GitCommitInfo commit,
-            string productName)
+        private IEnumerable<ReleaseEntry> GetEntriesForProduct(
+        GitCommitInfo commit,
+        string productName)
         {
-            // No scope → affects all
-            if (commit.Scopes == null || !commit.Scopes.Any())
-                return true;
+            foreach (var entry in commit.Entries)
+            {
+                // No scope = affects all
+                if (entry.Scopes == null || !entry.Scopes.Any())
+                {
+                    yield return entry;
+                    continue;
+                }
 
-            return commit.Scopes
-                .Any(scope => string.Equals(
-                    scope,
-                    productName,
-                    StringComparison.OrdinalIgnoreCase));
-        }
-
-        public void Dispose()
-        {
-            _repo.Dispose();
+                if (entry.Scopes.Any(s =>
+                    string.Equals(s, productName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    yield return entry;
+                }
+            }
         }
     }
 }

@@ -31,26 +31,5 @@ namespace NetChangelogUtils.ProjectFiles.Version
             UpdateCsproj(project);
         }
 
-        private void UpdateCsproj(ProjectVersionInfo project)
-        {
-            var doc = XDocument.Load(project.ProjectPath);
-            var propertyGroup = doc.Descendants("PropertyGroup").First();
-
-            SetOrCreate(propertyGroup, "Version", project.Version);
-            SetOrCreate(propertyGroup, "AssemblyVersion", project.AssemblyVersion);
-            SetOrCreate(propertyGroup, "FileVersion", project.FileVersion);
-            SetOrCreate(propertyGroup, "InformationalVersion", project.InformationalVersion);
-
-            doc.Save(project.ProjectPath);
-        }
-
-        private void SetOrCreate(XElement parent, string elementName, string value)
-        {
-            var element = parent.Element(elementName);
-            if (element == null)
-                parent.Add(new XElement(elementName, value));
-            else
-                element.Value = value;
-        }
     }
 }

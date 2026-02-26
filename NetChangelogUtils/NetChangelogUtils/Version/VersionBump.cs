@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NetChangelogUtils.ProjectFiles.Version
+namespace NetChangelogUtils.Version
 {
     public enum VersionBump
     {

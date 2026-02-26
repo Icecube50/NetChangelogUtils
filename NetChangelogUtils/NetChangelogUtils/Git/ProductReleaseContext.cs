@@ -9,13 +9,13 @@ namespace NetChangelogUtils.Git
 {
     public class ProductReleaseContext
     {
-        public ProductReleaseContext(ProjectVersionInfo versionInfo)
+        public ProductReleaseContext(ProjectInfo project)
         {
-            VersionInfo = versionInfo;
+            Project = project;
         }
 
-        public ProjectVersionInfo VersionInfo { get; }
+        public ProjectInfo Project { get; }
         public string LastTag { get; set; }
-        public List<GitCommitInfo> Commits { get; set; } = new();
+        public List<ReleaseEntry> Commits { get; set; } = new();
     }
 }

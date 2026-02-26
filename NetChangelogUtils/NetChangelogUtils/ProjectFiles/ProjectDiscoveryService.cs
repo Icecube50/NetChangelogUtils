@@ -1,4 +1,4 @@
-﻿using NetChangelogUtils.ProjectFiles.Version;
+﻿using NetChangelogUtils.Version;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,15 +11,15 @@ namespace NetChangelogUtils.ProjectFiles
 {
     public class ProjectDiscoveryService
     {
-        public List<ProjectVersionInfo> Discover(string rootDirectory)
+        public List<ProjectInfo> Discover(string rootDirectory)
         {
-            var results = new List<ProjectVersionInfo>();
+            var results = new List<ProjectInfo>();
 
             var projectFiles = Directory.GetFiles(rootDirectory, "*.csproj", SearchOption.AllDirectories);
 
             foreach (var project in projectFiles)
             {
-                var info = new ProjectVersionInfo
+                var info = new ProjectInfo
                 {
                     ProjectPath = project
                 };
@@ -34,7 +34,7 @@ namespace NetChangelogUtils.ProjectFiles
             return results;
         }
 
-        private void ExtractFromCsproj(ProjectVersionInfo info)
+        private void ExtractFromCsproj(ProjectInfo info)
         {
             var doc = XDocument.Load(info.ProjectPath);
             var propertyGroups = doc.Descendants("PropertyGroup");

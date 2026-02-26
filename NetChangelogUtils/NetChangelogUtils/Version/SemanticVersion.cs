@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace NetChangelogUtils.ProjectFiles.Version
+namespace NetChangelogUtils.Version
 {
     public class SemanticVersion
     {

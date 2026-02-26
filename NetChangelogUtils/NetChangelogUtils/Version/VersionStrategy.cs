@@ -5,13 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NetChangelogUtils.ProjectFiles.Version
+namespace NetChangelogUtils.Version
 {
     public class VersionStrategy
     {
         public SemanticVersion? CalculateNextVersion(
             SemanticVersion? currentVersion,
-            IEnumerable<GitCommitInfo> commits)
+            IEnumerable<ReleaseEntry> commits)
         {
             if (currentVersion == null)
                 return null;
@@ -27,7 +27,7 @@ namespace NetChangelogUtils.ProjectFiles.Version
             };
         }
 
-        private VersionBump DetermineHighestBump(IEnumerable<GitCommitInfo> commits)
+        private VersionBump DetermineHighestBump(IEnumerable<ReleaseEntry> commits)
         {
             VersionBump result = VersionBump.None;
 

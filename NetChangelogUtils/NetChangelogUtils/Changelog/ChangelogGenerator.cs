@@ -1,4 +1,5 @@
 ﻿using NetChangelogUtils.Git;
+using NetChangelogUtils.Version;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,17 +10,17 @@ namespace NetChangelogUtils.Changelog
 {
     public class ChangelogGenerator
     {
-        public string Generate(ProductReleaseContext context)
+        public string Generate(string product, SemanticVersion version, IEnumerable<ReleaseEntry> commits)
         {
-            var grouped = context.Commits
+            var grouped = commits
                 .GroupBy(c => c.Category?.ToLower() ?? "other")
                 .ToDictionary(g => g.Key, g => g.ToList());
 
             var sb = new StringBuilder();
 
-            sb.AppendLine($"# {context.VersionInfo.ProductName}");
+            sb.AppendLine($"# {product}");
             sb.AppendLine();
-            sb.AppendLine($"## v{context.VersionInfo.Version} ({DateTime.UtcNow:yyyy-MM-dd})");
+            sb.AppendLine($"## v{version} ({DateTime.UtcNow:yyyy-MM-dd})");
             sb.AppendLine();
 
             AppendSection(sb, "Breaking Changes", grouped, "breaking");
@@ -32,7 +33,7 @@ namespace NetChangelogUtils.Changelog
         private void AppendSection(
             StringBuilder sb,
             string title,
-            Dictionary<string, List<GitCommitInfo>> grouped,
+            Dictionary<string, List<ReleaseEntry>> grouped,
             string key)
         {
             if (!grouped.ContainsKey(key))
@@ -41,7 +42,7 @@ namespace NetChangelogUtils.Changelog
             sb.AppendLine($"### {title}");
             foreach (var commit in grouped[key])
             {
-                var message = ExtractCleanMessage(commit.Message);
+                var message = ExtractCleanMessage(commit.Description);
                 sb.AppendLine($"- {message}");
             }
             sb.AppendLine();
