@@ -19,9 +19,13 @@ namespace NetChangelogUtils
             try
             {
                 if (!Directory.Exists(options.Path))
-                    return;
+                    throw new InvalidOperationException($"Invalid project path {options.Path}");
 
-                using var repo = new Repository(options.Path);
+                var repoPath = Repository.Discover(options.Path);
+                if (string.IsNullOrEmpty(repoPath))
+                    throw new InvalidOperationException("Project not inside a git repository");
+
+                using var repo = new Repository(repoPath);
                 EnsureRepositoryIsClean(repo);
 
                 var discovery = new ProjectDiscoveryService();

@@ -1,19 +1,49 @@
-﻿namespace NetChangelogUtils
+﻿using System.CommandLine;
+using System.CommandLine.Parsing;
+using System.IO;
+
+namespace NetChangelogUtils
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
-            var path = Console.ReadLine();
 
-            var changlogUtils = new NetChangelogService();
-            changlogUtils.Run(new CliOptions
+            Option<bool> dryRunOption = new("--dry-run")
             {
-                DryRun = true,
-                Path = path,
-            });
-        }
+                Description = "Use to preview changes made by the tool",
+                DefaultValueFactory = parseResult => false,
+            };
 
-      
+            Option<string> projectPathOption = new("--project", "-p")
+            {
+                Description = "Use to manually set path to the project directory",
+                DefaultValueFactory = parseResult => Directory.GetCurrentDirectory(),
+            };
+
+            // Root command
+            var rootCommand = new RootCommand("NetChangelogUtils");
+            rootCommand.Options.Add(dryRunOption);
+            rootCommand.Options.Add(projectPathOption);
+         
+            ParseResult parseResult = rootCommand.Parse(args);
+            if (parseResult.Errors.Count == 0)
+            {
+                var options = new CliOptions
+                {
+                    DryRun = parseResult.GetValue(dryRunOption),
+                    Path = parseResult.GetValue(projectPathOption)
+                };
+
+                return 0;
+            }
+            foreach (ParseError parseError in parseResult.Errors)
+            {
+                Console.Error.WriteLine(parseError.Message);
+                rootCommand.Parse("-h").Invoke();
+
+            }
+            return 1;
+        }
     }
 }
