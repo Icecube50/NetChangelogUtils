@@ -46,7 +46,7 @@ namespace NetChangelogUtils
         private IEnumerable<ReleasePlan> CreateReleasePlans(
             IEnumerable<ProductReleaseContext> context)
         {
-            foreach (var contextItem in context)
+            foreach (var contextItem in context.Where(it => it.Commits.Any()))
             {
                 yield return new ReleasePlan(contextItem, _versionStrategy, _changelog);
             }
