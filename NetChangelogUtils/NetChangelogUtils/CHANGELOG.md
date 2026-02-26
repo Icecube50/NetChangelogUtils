@@ -2,6 +2,11 @@
 
 ## v1.1.0 (2026-02-26)
 
+
+# ChangelogUtils
+
+## v1.1.0 (2026-02-26)
+
 ### Features
 - added config file so that keywords and aliases may be changed
 
