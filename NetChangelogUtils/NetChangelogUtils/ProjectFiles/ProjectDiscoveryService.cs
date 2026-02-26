@@ -48,15 +48,5 @@ namespace NetChangelogUtils.ProjectFiles
                 product = Path.GetFileNameWithoutExtension(info.ProjectPath);
             info.ProductName = product;
         }
-
-        private string ExtractAttribute(string content, string attribute)
-        {
-            var match = Regex.Match(
-                content,
-                $@"\[assembly:\s*{attribute}\(""(?<value>[^""]+)""\)\]",
-                RegexOptions.IgnoreCase);
-
-            return match.Success ? match.Groups["value"].Value : null;
-        }
     }
 }
