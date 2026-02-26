@@ -60,7 +60,8 @@ namespace NetChangelogUtils
             var signature = _repo.Config.BuildSignature(DateTimeOffset.Now);
 
             var message = BuildReleaseCommitMessage(plans);
-
+            
+            Commands.Stage(_repo, "*");
             return _repo.Commit(message, signature, signature);
         }
 
