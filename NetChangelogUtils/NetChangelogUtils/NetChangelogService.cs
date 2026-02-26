@@ -30,6 +30,9 @@ namespace NetChangelogUtils
 
                 var discovery = new ProjectDiscoveryService();
                 var projects = discovery.Discover(options.Path);
+                if (projects.Count == 0)
+                    throw new InvalidOperationException("No valid project filed discovered");
+
                 var products = GetProductReleaseContexts(repo, projects);
 
                 var release = new ReleaseService(repo, new VersionStrategy(), new ChangelogGenerator());
