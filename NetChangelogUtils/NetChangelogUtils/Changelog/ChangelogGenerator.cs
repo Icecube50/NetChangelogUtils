@@ -1,4 +1,5 @@
-﻿using NetChangelogUtils.Git;
+﻿using NetChangelogUtils.Config;
+using NetChangelogUtils.Git;
 using NetChangelogUtils.Version;
 using System;
 using System.Collections.Generic;
@@ -10,10 +11,17 @@ namespace NetChangelogUtils.Changelog
 {
     public class ChangelogGenerator
     {
+        private readonly ChangelogUtilsConfig _config;
+
+        public ChangelogGenerator(ChangelogUtilsConfig config)
+        {
+            _config = config;
+        }
+
         public string Generate(string product, SemanticVersion version, IEnumerable<ReleaseEntry> commits)
         {
             var grouped = commits
-                .GroupBy(c => c.Category?.ToLower() ?? "other")
+                .GroupBy(c => c.Category?.ToLower()!)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
             var sb = new StringBuilder();
@@ -23,9 +31,10 @@ namespace NetChangelogUtils.Changelog
             sb.AppendLine($"## v{version} ({DateTime.UtcNow:yyyy-MM-dd})");
             sb.AppendLine();
 
-            AppendSection(sb, "Breaking Changes", grouped, "breaking");
-            AppendSection(sb, "Features", grouped, "feat");
-            AppendSection(sb, "Fixes", grouped, "fix");
+            foreach(var keyword in _config.Versioning.Keywords.OrderBy(it => it.ChangelogSection))
+            {
+                AppendSection(sb, keyword.ChangelogSection, grouped, keyword.Keyword.ToLower());
+            }
 
             return sb.ToString();
         }

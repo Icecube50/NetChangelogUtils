@@ -10,6 +10,8 @@ namespace NetChangelogUtils
     {
         public bool DryRun { get; set; }
         public bool IgnoreUnscoped { get; set; }
+        public bool PushTags { get; set; }
         public string Path { get; set; }
+        public string ConfigFilePath { get; set; }
     }
 }

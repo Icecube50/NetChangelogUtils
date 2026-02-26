@@ -1,4 +1,5 @@
-﻿using NetChangelogUtils.Git;
+﻿using NetChangelogUtils.Config;
+using NetChangelogUtils.Git;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,12 @@ namespace NetChangelogUtils.Version
 {
     public class VersionStrategy
     {
+        private readonly VersioningConfig _config;
+        public VersionStrategy(VersioningConfig config)
+        {
+            _config = config;
+        }
+
         public SemanticVersion? CalculateNextVersion(
             SemanticVersion? currentVersion,
             IEnumerable<ReleaseEntry> commits)
@@ -33,16 +40,10 @@ namespace NetChangelogUtils.Version
 
             foreach (var commit in commits)
             {
-                var bump = commit.Category?.ToLower() switch
-                {
-                    "breaking" => VersionBump.Major,
-                    "feat" => VersionBump.Minor,
-                    "fix" => VersionBump.Patch,
-                    _ => VersionBump.Patch
-                };
-
-                if (bump > result)
-                    result = bump;
+                var rule = _config.ResolveKeywordRule(commit.Category);
+                if (rule != null
+                && rule.Bump > result)
+                    result = rule.Bump;
             }
 
             return result;

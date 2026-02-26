@@ -27,11 +27,14 @@ namespace NetChangelogUtils
 
         public void Release(CliOptions options, IEnumerable<ProductReleaseContext> context)
         {
-            var releasePlans = CreateReleasePlans(context);
+            var releasePlans = CreateReleasePlans(context).ToList();
 
             if (options.DryRun)
             {
-                CheckTags(releasePlans);
+                if (CheckTags(releasePlans))
+                    Console.WriteLine("SUCCESS: all tags can be created");
+                else
+                    Console.WriteLine("INVALID: at least one tag is invalid");
                 return;
             }
 
@@ -105,8 +108,9 @@ namespace NetChangelogUtils
             return $"{plan.Context.Project.ProductName.Replace(" ", "_")}_v{plan.ChangelogVersion()}";
         }
 
-        private void CheckTags(IEnumerable<ReleasePlan> plans)
+        private bool CheckTags(IEnumerable<ReleasePlan> plans)
         {
+            bool allValid = true;
             foreach (var plan in plans)
             {
                 var tagName = GetTagName(plan);
@@ -114,11 +118,15 @@ namespace NetChangelogUtils
                 if (_repo.Tags[tagName] != null)
                 {
                     Console.WriteLine($"Tag {tagName} already exists.");
+                    Console.WriteLine();
+                    allValid = false;
                     continue;
                 }
 
                 Console.WriteLine($"Tag {tagName} can be created.");
+                Console.WriteLine();
             }
+            return allValid;
         }
 
         private class ReleasePlan

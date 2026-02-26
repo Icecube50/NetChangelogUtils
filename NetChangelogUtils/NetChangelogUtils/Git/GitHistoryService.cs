@@ -1,9 +1,11 @@
 ﻿using LibGit2Sharp;
+using NetChangelogUtils.Config;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace NetChangelogUtils.Git
 {
@@ -11,14 +13,16 @@ namespace NetChangelogUtils.Git
     {
         private readonly Repository _repo;
         private readonly CliOptions _options;
+        private readonly ChangelogUtilsConfig _config;
 
-        public GitHistoryService(CliOptions options, Repository repo)
+        public GitHistoryService(CliOptions options, Repository repo, ChangelogUtilsConfig config)
         {
             _repo = repo;
             _options = options;
+            _config = config;
         }
 
-        public void GetHistoryForProduct(ProductReleaseContext context)
+        public void GetHistoryForProduct(ProductReleaseContext context, IEnumerable<string> productNames)
         {
             var lastTagCommit = GetLastProductTagCommit(context.Project.ProductName);
 
@@ -42,9 +46,9 @@ namespace NetChangelogUtils.Git
                     Date = commit.Author.When
                 };
 
-                CommitParser.ParseCommit(info);
+                CommitParser.ParseCommit(info, _config.Versioning, productNames);
 
-                context.Commits.AddRange(GetEntriesForProduct(info, context.Project.ProductName));
+                context.Commits.AddRange(GetEntriesForProduct(info, context.Project.ProductName, _config.ScopeAliases));
             }
         }
 
@@ -66,7 +70,8 @@ namespace NetChangelogUtils.Git
 
         private IEnumerable<ReleaseEntry> GetEntriesForProduct(
         GitCommitInfo commit,
-        string productName)
+        string productName,
+        IEnumerable<ScopeAlias> aliases)
         {
             foreach (var entry in commit.Entries)
             {
@@ -80,6 +85,15 @@ namespace NetChangelogUtils.Git
 
                 if (entry.Scopes.Any(s =>
                     string.Equals(s, productName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    yield return entry;
+                    continue;
+                }
+
+                if (entry.Scopes.Any(s =>
+                    aliases.Where(a => string.Equals(a.Alias, s, StringComparison.OrdinalIgnoreCase))
+                    .Select(a => a.Products)
+                    .Any(p => string.Equals(s, productName, StringComparison.OrdinalIgnoreCase))))
                 {
                     yield return entry;
                 }

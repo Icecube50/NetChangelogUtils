@@ -9,13 +9,13 @@ namespace NetChangelogUtils
         static int Main(string[] args)
         {
 
-            Option<bool> dryRunOption = new("--dry-run")
+            Option<bool> dryRunOption = new("--dry-run", "-d")
             {
                 Description = "Use to preview changes made by the tool",
                 DefaultValueFactory = parseResult => false,
             };
 
-            Option<bool> ignoreUnscopedOption = new("--ignore-unscoped")
+            Option<bool> ignoreUnscopedOption = new("--ignore-unscoped", "-i")
             {
                 Description = "Use to ignore changes that have not been added to a scope",
                 DefaultValueFactory = parseResult => false,
@@ -27,12 +27,19 @@ namespace NetChangelogUtils
                 DefaultValueFactory = parseResult => Directory.GetCurrentDirectory(),
             };
 
+            Option<string> configPathOption = new("--config", "-c")
+            {
+                Description = "Use to manually set path to the config file",
+                DefaultValueFactory = parseResult => Path.Combine(Directory.GetCurrentDirectory(), ".changelogUtils"),
+            };
+
             // Root command
             var rootCommand = new RootCommand("NetChangelogUtils");
             rootCommand.Options.Add(dryRunOption);
             rootCommand.Options.Add(ignoreUnscopedOption);
             rootCommand.Options.Add(projectPathOption);
-         
+            rootCommand.Options.Add(configPathOption);
+
             ParseResult parseResult = rootCommand.Parse(args);
             if (parseResult.Errors.Count == 0)
             {
@@ -40,7 +47,8 @@ namespace NetChangelogUtils
                 {
                     DryRun = parseResult.GetValue(dryRunOption),
                     IgnoreUnscoped = parseResult.GetValue(ignoreUnscopedOption),
-                    Path = parseResult.GetValue(projectPathOption)
+                    Path = parseResult.GetValue(projectPathOption),
+                    ConfigFilePath = parseResult.GetValue(configPathOption),
                 };
 
                 var changelogUtils = new NetChangelogService();

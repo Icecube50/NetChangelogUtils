@@ -1,5 +1,6 @@
 ﻿using LibGit2Sharp;
 using NetChangelogUtils.Changelog;
+using NetChangelogUtils.Config;
 using NetChangelogUtils.Git;
 using NetChangelogUtils.ProjectFiles;
 using NetChangelogUtils.Version;
@@ -20,6 +21,8 @@ namespace NetChangelogUtils
             {
                 Console.WriteLine($"Analyzing {options.Path}");
 
+                var config = ConfigLoader.LoadConfig(options);
+
                 if (!Directory.Exists(options.Path))
                     throw new InvalidOperationException($"Invalid project path {options.Path}");
 
@@ -35,9 +38,9 @@ namespace NetChangelogUtils
                 if (projects.Count == 0)
                     throw new InvalidOperationException("No valid project filed discovered");
 
-                var products = GetProductReleaseContexts(options, repo, projects);
+                var products = GetProductReleaseContexts(options, repo, projects, config);
 
-                var release = new ReleaseService(repo, new VersionStrategy(), new ChangelogGenerator());
+                var release = new ReleaseService(repo, new VersionStrategy(config.Versioning), new ChangelogGenerator(config));
                 release.Release(options, products);
             }
             catch (Exception ex)
@@ -46,13 +49,15 @@ namespace NetChangelogUtils
             }
         }
 
-        private static IEnumerable<ProductReleaseContext> GetProductReleaseContexts(CliOptions options, Repository repo, IEnumerable<ProjectInfo> projects)
+        private static IEnumerable<ProductReleaseContext> GetProductReleaseContexts(
+            CliOptions options, Repository repo, IEnumerable<ProjectInfo> projects, ChangelogUtilsConfig config)
         {
-            var history = new GitHistoryService(options, repo);
+            var history = new GitHistoryService(options, repo, config);
+            var productNames = projects.Select(it => it.ProductName);
             foreach (var project in projects)
             {
                 var context = new ProductReleaseContext(project);
-                history.GetHistoryForProduct(context);
+                history.GetHistoryForProduct(context, productNames);
                 yield return context;
             }
         }

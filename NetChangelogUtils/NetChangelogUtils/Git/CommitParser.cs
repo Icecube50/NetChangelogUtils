@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NetChangelogUtils.Config;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,12 +10,27 @@ namespace NetChangelogUtils.Git
 {
     public static class CommitParser
     {
-        private static readonly Regex EntryRegex =
-            new Regex(
-               @"^(?<category>\w+)(<(?<scopes>[^>]+)>)?\s+(?<description>.+)$",
-               RegexOptions.Compiled);
+        private static Regex BuildEntryRegex(
+             IEnumerable<string> keywords,
+             IEnumerable<string> validScopes)
+        {
+            var keywordPattern = string.Join("|",
+                keywords.Select(Regex.Escape));
 
-        public static void ParseCommit(GitCommitInfo commit)
+            var scopePattern = string.Join("|",
+                validScopes.Select(Regex.Escape));
+
+            var pattern =
+                $@"^(?<category>{keywordPattern})" +
+                $@"(<(?<scopes>(?:{scopePattern})(?:\s*,\s*(?:{scopePattern}))*)>)?" +
+                $@"\s+(?<description>[\s\S]+)$";
+
+            return new Regex(
+                pattern,
+                RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        }
+
+        public static void ParseCommit(GitCommitInfo commit, VersioningConfig config, IEnumerable<string> productNames)
         {
             var lines = commit.Message
                 .Replace("\r\n", "\n")
@@ -29,7 +45,9 @@ namespace NetChangelogUtils.Git
                 if (string.IsNullOrWhiteSpace(line))
                     continue;
 
-                var match = EntryRegex.Match(line);
+                var match = BuildEntryRegex(config.Keywords.Select(it => it.Keyword),
+                                            productNames)
+                           .Match(line);
 
                 if (match.Success)
                 {
@@ -39,6 +57,11 @@ namespace NetChangelogUtils.Git
                         Category = match.Groups["category"].Value,
                         Description = match.Groups["description"].Value.Trim()
                     };
+
+                    var keyword = config.ResolveKeywordRule(currentEntry.Category);
+                    if (keyword == null)
+                        throw new InvalidOperationException($"Keyword {currentEntry.Category} is not defined.");
+                    
 
                     if (match.Groups["scopes"].Success)
                     {
