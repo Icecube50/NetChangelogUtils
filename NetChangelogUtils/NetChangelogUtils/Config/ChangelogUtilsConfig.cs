@@ -22,7 +22,7 @@ namespace NetChangelogUtils.Config
         {
             return Keywords
                 .FirstOrDefault(k =>
-                    string.Equals(k.Keyword, keyword,
+                    string.Equals(k.Keyword, keyword.Trim(),
                         StringComparison.OrdinalIgnoreCase));
         }
     }

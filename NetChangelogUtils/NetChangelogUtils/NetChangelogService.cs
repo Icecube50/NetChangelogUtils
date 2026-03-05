@@ -6,6 +6,7 @@ using NetChangelogUtils.ProjectFiles;
 using NetChangelogUtils.Version;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,49 +18,47 @@ namespace NetChangelogUtils
     {
         public void Run(CliOptions options)
         {
-            try
-            {
-                Console.WriteLine($"Analyzing {options.Path}");
+           try
+           {
+              Console.WriteLine(options);
+              Console.WriteLine($"Analyzing {options.Path}");
 
-                var config = ConfigLoader.LoadConfig(options);
+              // Load config or use default
+              var config = ConfigLoader.LoadConfig(options);
 
-                if (!Directory.Exists(options.Path))
-                    throw new InvalidOperationException($"Invalid project path {options.Path}");
+              if(!Directory.Exists(options.Path))
+                 throw new InvalidOperationException($"Invalid project path {options.Path}");
 
-                var repoPath = Repository.Discover(options.Path);
-                if (string.IsNullOrEmpty(repoPath))
-                    throw new InvalidOperationException("Project not inside a git repository");
+              // Find git repository
+              var repoPath = Repository.Discover(options.Path);
+              if(string.IsNullOrEmpty(repoPath))
+                 throw new InvalidOperationException("Project not inside a git repository");
 
-                using var repo = new Repository(repoPath);
-                EnsureRepositoryIsClean(repo);
+              // Ensure repository is in safe state
+              using var repo = new Repository(repoPath);
+              EnsureRepositoryIsClean(repo);
 
-                var discovery = new ProjectDiscoveryService();
-                var projects = discovery.Discover(options.Path);
-                if (projects.Count == 0)
-                    throw new InvalidOperationException("No valid project filed discovered");
+              var projects  = ProjectDiscovery.RunOn(options.Path);
 
-                var products = GetProductReleaseContexts(options, repo, projects, config);
+              if(projects.Count == 0)
+                 throw new InvalidOperationException("No valid project filed discovered");
 
-                var release = new ReleaseService(repo, new VersionStrategy(config.Versioning), new ChangelogGenerator(config));
-                release.Release(options, products);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"ERROR | {ex.Message}");
-            }
+              var products = GetProductReleaseContexts(options, repo, projects, config).ToList();
+
+              Console.WriteLine("----- PREVIEWS -----");
+              var updateService = new UpdateService(repo, new VersionStrategy(config.Versioning), new ChangelogGenerator(config), options);
+              updateService.Update(products);
+           }
+           catch(Exception ex)
+           {
+              Console.WriteLine($"ERROR | {ex.Message}");
+           }
         }
 
         private static IEnumerable<ProductReleaseContext> GetProductReleaseContexts(
             CliOptions options, Repository repo, IEnumerable<ProjectInfo> projects, ChangelogUtilsConfig config)
         {
-            var history = new GitHistoryService(options, repo, config);
-            var productNames = projects.Select(it => it.ProductName);
-            foreach (var project in projects)
-            {
-                var context = new ProductReleaseContext(project);
-                history.GetHistoryForProduct(context, productNames);
-                yield return context;
-            }
+            return GitHistoryExplorer.GetHistoryForProducts(repo, options, config, projects.ToList());
         }
 
         private static void EnsureRepositoryIsClean(Repository repo)

@@ -9,9 +9,9 @@ using System.Xml.Linq;
 
 namespace NetChangelogUtils.ProjectFiles
 {
-    public class ProjectDiscoveryService
+    public static class ProjectDiscovery
     {
-        public List<ProjectInfo> Discover(string rootDirectory)
+        public static List<ProjectInfo> RunOn(string rootDirectory)
         {
             var results = new List<ProjectInfo>();
 
@@ -29,12 +29,14 @@ namespace NetChangelogUtils.ProjectFiles
                     continue;
 
                 results.Add(info);
+                Console.WriteLine($"Discovered: {info}");
             }
 
+            Console.WriteLine();
             return results;
         }
 
-        private void ExtractFromCsproj(ProjectInfo info)
+        private static void ExtractFromCsproj(ProjectInfo info)
         {
             var doc = XDocument.Load(info.ProjectPath);
             var propertyGroups = doc.Descendants("PropertyGroup");

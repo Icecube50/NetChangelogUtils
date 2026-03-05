@@ -10,26 +10,29 @@ using System.Threading.Tasks;
 
 namespace NetChangelogUtils
 {
-    public class ReleaseService
+    public class UpdateService
     {
         private readonly VersionStrategy _versionStrategy;
         private readonly ChangelogGenerator _changelog;
+        private readonly CliOptions _options;
         private readonly Repository _repo;
 
-        public ReleaseService( Repository repo,
+        public UpdateService( Repository repo,
             VersionStrategy versionStrategy,
-            ChangelogGenerator changelog)
+            ChangelogGenerator changelog,
+            CliOptions options)
         {
             _repo = repo;
             _versionStrategy = versionStrategy;
             _changelog = changelog;
+            _options = options;
         }
 
-        public void Release(CliOptions options, IEnumerable<ProductReleaseContext> context)
+        public void Update(IEnumerable<ProductReleaseContext> context)
         {
             var releasePlans = CreateReleasePlans(context).ToList();
 
-            if (options.DryRun)
+            if (_options.DryRun)
             {
                 if (CheckTags(releasePlans))
                     Console.WriteLine("SUCCESS: all tags can be created");
@@ -138,6 +141,7 @@ namespace NetChangelogUtils
                 NewAssemblyVersion = strategy.CalculateNextVersion(context.Project.AssemblyVersion, context.Commits);
                 NewFileVersion = strategy.CalculateNextVersion(context.Project.FileVersion, context.Commits);
 
+                Console.WriteLine();
                 Console.WriteLine($"Detected {context.Project.ProductName}: ");
                 if(NewVersion != null)
                     Console.WriteLine($"\tVersion {context.Project.Version} ->  {NewVersion}");
@@ -149,6 +153,7 @@ namespace NetChangelogUtils
                     Console.WriteLine($"\tAssembly Version {context.Project.AssemblyVersion} ->  {NewAssemblyVersion}");
                 Console.WriteLine();
 
+                Console.WriteLine("Updated changelog:");
                 Changelog = changelog.Generate(context.Project.ProductName, ChangelogVersion(), context.Commits);
                 Console.WriteLine(Changelog);
                 Console.WriteLine();

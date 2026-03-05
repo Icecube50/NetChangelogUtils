@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using LibGit2Sharp;
 
 namespace NetChangelogUtils.Git
 {
@@ -22,7 +23,7 @@ namespace NetChangelogUtils.Git
 
             var pattern =
                 $@"^(?<category>{keywordPattern})" +
-                $@"(<(?<scopes>(?:{scopePattern})(?:\s*,\s*(?:{scopePattern}))*)>)?" +
+                $@"(\s*<(?<scopes>(?:{scopePattern})(?:\s*,\s*(?:{scopePattern}))*)>\s*)?" +
                 $@"\s+(?<description>[\s\S]+)$";
 
             return new Regex(
@@ -30,13 +31,21 @@ namespace NetChangelogUtils.Git
                 RegexOptions.Compiled | RegexOptions.IgnoreCase);
         }
 
-        public static void ParseCommit(GitCommitInfo commit, VersioningConfig config, IEnumerable<string> productNames)
+        public static GitCommitInfo ParseCommit(Commit commit, VersioningConfig config, IEnumerable<string> scopes)
         {
             var lines = commit.Message
                 .Replace("\r\n", "\n")
                 .Split('\n');
 
             ReleaseEntry currentEntry = null;
+
+            var commitInfo = new GitCommitInfo
+            {
+               Sha     = commit.Sha,
+               Message = commit.Message,
+               Author  = commit.Author.Name,
+               Date    = commit.Author.When
+            };
 
             foreach (var rawLine in lines)
             {
@@ -46,7 +55,7 @@ namespace NetChangelogUtils.Git
                     continue;
 
                 var match = BuildEntryRegex(config.Keywords.Select(it => it.Keyword),
-                                            productNames)
+                                            scopes)
                            .Match(line);
 
                 if (match.Success)
@@ -69,10 +78,11 @@ namespace NetChangelogUtils.Git
                             .Value
                             .Split(',', StringSplitOptions.RemoveEmptyEntries)
                             .Select(s => s.Trim())
+                                                   .Select(s => s.ToLowerInvariant())
                             .ToList();
                     }
 
-                    commit.Entries.Add(currentEntry);
+                    commitInfo.Entries.Add(currentEntry);
                 }
                 else if (currentEntry != null)
                 {
@@ -80,6 +90,8 @@ namespace NetChangelogUtils.Git
                     currentEntry.Description += " " + line;
                 }
             }
+
+            return commitInfo;
         }
     }
 }

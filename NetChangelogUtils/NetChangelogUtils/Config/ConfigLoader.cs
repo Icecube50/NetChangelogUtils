@@ -4,27 +4,42 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace NetChangelogUtils.Config
 {
     public static class ConfigLoader
     {
-        public static ChangelogUtilsConfig LoadConfig(CliOptions options)
-        {
-            if (!File.Exists(options.ConfigFilePath))
-                return DefaultConfig;
+       public static ChangelogUtilsConfig LoadConfig(CliOptions options)
+       {
+          if(!File.Exists(options.ConfigFilePath))
+          {
+             var defaultConf = DefaultConfig;
+             using var file = File.Open(options.ConfigFilePath, FileMode.Create);
+             var jsonOptions = new JsonSerializerOptions
+             {
+                PropertyNameCaseInsensitive = true,
+                WriteIndented               = true,
+             };
+             jsonOptions.Converters.Add(new JsonStringEnumConverter());
+             JsonSerializer.Serialize(file, defaultConf, jsonOptions);
+             return defaultConf;
+          }
+          else
+          {
+             var json = File.ReadAllText(options.ConfigFilePath);
+             var jsonOptions = new JsonSerializerOptions
+             {
+                PropertyNameCaseInsensitive = true,
+             };
+             jsonOptions.Converters.Add(new JsonStringEnumConverter());
+             return JsonSerializer.Deserialize<ChangelogUtilsConfig>(json,
+                                                                     jsonOptions)!;
+          }
+       }
 
-            var json = File.ReadAllText(options.ConfigFilePath);
-            return JsonSerializer.Deserialize<ChangelogUtilsConfig>(
-                json,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                })!;
-        }
-
-        private static ChangelogUtilsConfig DefaultConfig = new ChangelogUtilsConfig()
+       private static ChangelogUtilsConfig DefaultConfig = new ChangelogUtilsConfig()
         {
             Versioning = new VersioningConfig()
             {

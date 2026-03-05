@@ -48,6 +48,10 @@ namespace NetChangelogUtils.Changelog
             if (!grouped.ContainsKey(key))
                 return;
 
+            // Skip section
+            if(!grouped[key].Any()) 
+               return;
+
             sb.AppendLine($"### {title}");
             foreach (var commit in grouped[key])
             {

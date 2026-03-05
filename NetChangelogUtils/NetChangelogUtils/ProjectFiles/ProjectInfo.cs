@@ -17,6 +17,13 @@ namespace NetChangelogUtils.ProjectFiles
         public SemanticVersion? FileVersion { get; set; }
         public string ProductName { get; set; }
 
+        public string TagName => ProductName.Trim().Replace(" ", "_");
+
+        public static bool CompareNames(string me, string other)
+        {
+           return string.Equals(me.Trim(), other.Trim(), StringComparison.OrdinalIgnoreCase);
+        }
+
         public bool HasVersionInfo => Version != null || FileVersion != null || AssemblyVersion != null;
 
         public void WriteChangelog(string content)
@@ -72,7 +79,7 @@ namespace NetChangelogUtils.ProjectFiles
 
         public override string ToString()
         {
-            return $"{ProjectPath} | Version={Version}, Assembly={AssemblyVersion}, File={FileVersion}";
+            return $"{ProductName} | Version = {Version}, Assembly = {AssemblyVersion}, File = {FileVersion}";
         }
     }
 }
