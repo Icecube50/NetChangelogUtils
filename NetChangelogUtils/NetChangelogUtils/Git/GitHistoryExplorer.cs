@@ -37,6 +37,7 @@ namespace NetChangelogUtils.Git
 
             var scope = new List<string>();
             scope.AddRange(projects.Select(it => it.ProductName));
+            scope.AddRange(projects.Where(it => it.ProjectName != it.ProductName).Select(it => it.ProjectName));
             scope.AddRange(config.ScopeAliases.Select(it => it.Alias));
 
             foreach (var commit in commits)
@@ -54,6 +55,7 @@ namespace NetChangelogUtils.Git
                                                                  options,
                                                                  info,
                                                                  context.Project.ProductName,
+                                                                 context.Project.ProjectName,
                                                                  config.ScopeAliases));
                 }
             }
@@ -81,6 +83,7 @@ namespace NetChangelogUtils.Git
            CliOptions options,
         GitCommitInfo commit,
         string productName,
+           string projectName,
         IEnumerable<ScopeAlias> aliases)
         {
             foreach (var entry in commit.Entries)
@@ -93,7 +96,8 @@ namespace NetChangelogUtils.Git
                     continue;
                 }
 
-                if (entry.Scopes.Any(s =>  ProjectInfo.CompareNames(s, productName)))
+                if (entry.Scopes.Any(s =>  ProjectInfo.CompareNames(s, productName)
+                                     || ProjectInfo.CompareNames(s, projectName)))
                 {
                     yield return entry;
                     continue;
@@ -103,7 +107,8 @@ namespace NetChangelogUtils.Git
                 if (entry.Scopes.Any(s =>
                     aliases.Where(a => ProjectInfo.CompareNames(s, a.Alias))
                     .Select(a => a.Products)
-                    .Any(p => p.Any(it => ProjectInfo.CompareNames(it, productName)))))
+                    .Any(p => p.Any(it => ProjectInfo.CompareNames(it, productName) ||
+                                          ProjectInfo.CompareNames(it, projectName)))))
                 {
                     yield return entry;
                 }

@@ -39,16 +39,36 @@ namespace NetChangelogUtils.ProjectFiles
         private static void ExtractFromCsproj(ProjectInfo info)
         {
             var doc = XDocument.Load(info.ProjectPath);
-            var propertyGroups = doc.Descendants("PropertyGroup");
+            var propertyGroups = GetPropertyGroups(doc);
 
-            info.Version = SemanticVersion.CreateFrom(propertyGroups.Elements("Version").FirstOrDefault()?.Value);
-            info.AssemblyVersion = SemanticVersion.CreateFrom(propertyGroups.Elements("AssemblyVersion").FirstOrDefault()?.Value);
-            info.FileVersion = SemanticVersion.CreateFrom(propertyGroups.Elements("FileVersion").FirstOrDefault()?.Value);
-          
-            var product = propertyGroups.Elements("Product").FirstOrDefault()?.Value;
+            var ns = propertyGroups.FirstOrDefault()?.Name.Namespace ?? XNamespace.None;
+
+            info.Version = SemanticVersion.CreateFrom(
+                                                      propertyGroups.Elements(ns + "Version").FirstOrDefault()?.Value);
+
+            info.AssemblyVersion = SemanticVersion.CreateFrom(
+                                                              propertyGroups.Elements(ns + "AssemblyVersion").FirstOrDefault()?.Value);
+
+            info.FileVersion = SemanticVersion.CreateFrom(
+                                                          propertyGroups.Elements(ns + "FileVersion").FirstOrDefault()?.Value);
+
+            var project = Path.GetFileNameWithoutExtension(info.ProjectPath);
+
+            var product = propertyGroups.Elements(ns + "Product").FirstOrDefault()?.Value;
             if (string.IsNullOrEmpty(product))
-                product = Path.GetFileNameWithoutExtension(info.ProjectPath);
+               product = project;
+
             info.ProductName = product;
+            info.ProjectName = project;
+        }
+
+        private static IEnumerable<XElement> GetPropertyGroups(XDocument doc)
+        {
+           if (doc.Root == null)
+              return Enumerable.Empty<XElement>();
+
+           XNamespace ns = doc.Root.Name.Namespace;
+           return doc.Descendants(ns + "PropertyGroup");
         }
     }
 }

@@ -16,6 +16,7 @@ namespace NetChangelogUtils.ProjectFiles
         public SemanticVersion? AssemblyVersion { get; set; }
         public SemanticVersion? FileVersion { get; set; }
         public string ProductName { get; set; }
+        public string ProjectName { get; set; }
 
         public string TagName => ProductName.Trim().Replace(" ", "_");
 
